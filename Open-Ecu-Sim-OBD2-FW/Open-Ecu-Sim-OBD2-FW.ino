@@ -108,7 +108,7 @@ START_CAN_INIT:
 
 //Try and init your CAN-BUS sheild. 
 //You will have to check your crystal oscillator on your CAN-BUS sheild and change 'MCP_16MHZ' accordingly.    
-  if (CAN_OK == CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ))
+  if (CAN_OK == CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ))
   {
     Serial.println("CAN BUS Shield init ok!");
     CAN0.setMode(MCP_NORMAL); 
@@ -154,12 +154,12 @@ void loop()
   // |   |      |||PID 0x0F (15) - Intake air temperature
   // |   |      ||||PID 0x10 (16) - MAF Air Flow Rate
   // |   |      |||||            PID 0x1C (28) - OBD standards this vehicle conforms to
-  // |   |      |||||            |                              PID 0x51 (58) - Fuel Type
+  // |   |      |||||            |                              PID 0x51 (81) - Fuel Type
   // |   |      |||||            |                              |
   // v   V      VVVVV            V                              v
   // 10001000000111110000:000000010000000000000:0000000000000000100
   // Converted to hex, that is the following four byte value binary to hex
-  // 0x881F0000 0x00 PID 01 -20
+  // 0x881F0000 0x00 PID 01 - 20
   // 0x02000000 0x20 PID 21 - 40
   // 0x04000000 0x40 PID 41 - 60
 
@@ -176,9 +176,11 @@ void loop()
   //                                |     |     |     |     |      |    |    0x00 - OPTIONAL - Just extra zeros to fill up the 8 byte CAN message data payload)
   //                                |     |     |     |     |      |    |     |
   //                                V     V     V     V     V      V    V     V
-  byte mode1Supported0x00PID[8] = {0x06, 0x41, 0x00, 0x88, 0x1F, 0x00, 0x00, 0x00};
-  byte mode1Supported0x20PID[8] = {0x06, 0x41, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00};
-  byte mode1Supported0x40PID[8] = {0x06, 0x41, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00};
+  byte mode1Supported0x00PID[8] = {0x06, 0x41, 0x00, 0x88, 0x1F, 0x00, 0x11, 0x00};
+ // byte mode1Supported0x20PID[8] = {0x06, 0x41, 0x20, 0x02, 0x00, 0x00, 0x00, 0x00};
+  byte mode1Supported0x20PID[8] = {0x06, 0x41, 0x20, 0x00, 0x00, 0x00, 0x01, 0x00};
+  byte mode1Supported0x40PID[8] = {0x06, 0x41, 0x40, 0x00, 0x00, 0x80, 0x00, 0x00};
+  //byte mode1Supported0x40PID[8] = {0x06, 0x41, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00};
 
   // Define the set of PIDs for MODE09 you wish you ECU to support.
   // As per the information on bitwise encoded PIDs (https://en.wikipedia.org/wiki/OBD-II_PIDs#Mode_1_PID_00)
@@ -241,8 +243,8 @@ void loop()
 //Handel Recived CAN-BUS frames from service tool
 //=================================================================
 
-  //if(CAN_MSGAVAIL == CAN.checkReceive())
-  if (!digitalRead(CAN0_INT))
+  if(CAN_MSGAVAIL == CAN0.checkReceive())
+  //if (!digitalRead(CAN0_INT))
   {
 
     CAN0.readMsgBuf(&canId, &len, buf);
@@ -264,6 +266,8 @@ void loop()
     {
       CAN0.sendMsgBuf(REPLY_ID, 0, 8, mode1Supported0x00PID);
       reply = String(String(REPLY_ID, HEX) + ",0,8," + String((char*)mode1Supported0x00PID));
+//      reply = String(String(REPLY_ID, HEX) + ",0,8,");
+//      sprintf(reply, "%s", mode1Supported0x00PID);
       Serial.println("Reply: " + reply);
       reply = "";
     }

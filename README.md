@@ -32,6 +32,7 @@ Currently the Ardunio source is in random value standalone mode. Can view the ra
 ## Tested With
 -ELM327 USB with Torque ‘Android’ <br/>
 -Foxwell NT650<br/>
+-SPI Card with mcp2515<br/>
 
 ## Instructions
 The CAN shield or controller needs to have it’s CAN_H and CAN_L Terminated. On my shield I had to solder join ‘J3’. <br/>
